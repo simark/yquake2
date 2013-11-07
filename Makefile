@@ -163,9 +163,12 @@ ifeq ($(OSTYPE), Darwin)
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g
 CFLAGS += $(OSX_ARCH)
+else ifeq ($(OSTYPE),Linux)
+CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
+		  -Wall -pipe -g -MMD -finstrument-functions
 else
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -MMD
+		  -Wall -pipe -g -MMD -finstrument-functions
 endif
 
 # ----------
