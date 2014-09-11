@@ -165,7 +165,7 @@ CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 CFLAGS += $(OSX_ARCH)
 else ifeq ($(OSTYPE),Linux)
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -MMD -finstrument-functions
+		  -Wall -pipe -g -MMD -finstrument-functions -Isrc/instrumentation
 else
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g -MMD -finstrument-functions
@@ -241,7 +241,7 @@ endif
 
 # Base LDFLAGS.
 ifeq ($(OSTYPE),Linux)
-LDFLAGS := -L/usr/lib -lm -ldl -rdynamic
+LDFLAGS := -L/usr/lib -lm -ldl -rdynamic -llttng-ust
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),OpenBSD)
@@ -561,6 +561,7 @@ endif
 
 # Used by the game
 GAME_OBJS_ = \
+	src/instrumentation/lttng-ust-standard-tp.o \
 	src/common/shared/flash.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \

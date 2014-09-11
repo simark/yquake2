@@ -25,6 +25,8 @@
  */
 
 #include "../../header/local.h"
+#define TRACEPOINT_DEFINE
+#include "../../../instrumentation/lttng-ust-standard-tp.h"
 
 #define STEPSIZE 18
 #define DI_NODIR -1
@@ -697,6 +699,6 @@ M_walkmove(edict_t *ent, float yaw, float dist)
 	move[0] = cos(yaw) * dist;
 	move[1] = sin(yaw) * dist;
 	move[2] = 0;
-
+	tracepoint(lttng_ust_quake2, unit_coord, ent->classname, move[0], move[1], ent->health);
 	return SV_movestep(ent, move, true);
 }
