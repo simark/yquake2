@@ -452,7 +452,6 @@ Sys_GetGameAPI(void *parms)
 			return NULL;
 		}
 	}
-
 	GetGameAPI = (void *)dlsym(game_library, "GetGameAPI");
 
 	if (!GetGameAPI)

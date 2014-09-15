@@ -889,7 +889,7 @@ player_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
 		   it's how we want to handle keys in coop */
 		for (n = 0; n < game.num_items; n++)
 		{
-			if (coop->value && itemlist[n].flags & IT_KEY)
+			if (coop->value && (itemlist[n].flags & IT_KEY))
 			{
 				self->client->resp.coop_respawn.inventory[n] =
 					self->client->pers.inventory[n];

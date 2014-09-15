@@ -132,7 +132,7 @@ ai_stand(edict_t *self, float dist)
 			self->ideal_yaw = vectoyaw(v);
 
 			if ((self->s.angles[YAW] != self->ideal_yaw) &&
-				self->monsterinfo.aiflags & AI_TEMP_STAND_GROUND)
+				(self->monsterinfo.aiflags & AI_TEMP_STAND_GROUND))
 			{
 				self->monsterinfo.aiflags &=
 					~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
