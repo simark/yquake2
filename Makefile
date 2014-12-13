@@ -165,10 +165,10 @@ CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 CFLAGS += $(OSX_ARCH)
 else ifeq ($(OSTYPE),Linux)
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -MMD -finstrument-functions -Isrc/instrumentation
+		  -Wall -pipe -g -MMD
 else
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -MMD -finstrument-functions
+		  -Wall -pipe -g -MMD
 endif
 
 # ----------
@@ -241,7 +241,7 @@ endif
 
 # Base LDFLAGS.
 ifeq ($(OSTYPE),Linux)
-LDFLAGS := -L/usr/lib -lm -ldl -rdynamic -llttng-ust
+LDFLAGS := -L/usr/lib -lm -ldl -rdynamic
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),OpenBSD)
@@ -296,18 +296,18 @@ endif
 ifdef VERBOSE
 Q :=
 else
-Q := @
+Q :=
 endif
 
 # ----------
 
 # Phony targets
-.PHONY : all client game icon server
+.PHONY : all client game icon server instrumentation
 
 # ----------
 
 # Builds everything
-all: config client server game
+all: config client server game instrumentation
 
 # Print config values
 config:
@@ -559,9 +559,32 @@ endif
 
 # ----------
 
+# LTTng instrumentation
+ifeq ($(OSTYPE), Windows)
+# LOL
+else
+instrumentation:
+	@echo "===> Building instrumentation/tracepoints.so"
+	${Q}mkdir -p release/instrumentation
+	$(MAKE) release/instrumentation/tracepoints.so
+
+build/instrumentation/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+
+release/instrumentation/tracepoints.so : CFLAGS += -fPIC
+release/instrumentation/tracepoints.so : LDFLAGS += -shared -Wl,--no-as-needed -llttng-ust
+release/instrumentation/tracepoints.so : INCLUDE += -I src/instrumentation
+endif
+
+# ----------
+
+INSTRUMENTATION_OBJS_ = \
+	src/instrumentation/lttng-ust-standard-tp.o
+
 # Used by the game
 GAME_OBJS_ = \
-	src/instrumentation/lttng-ust-standard-tp.o \
 	src/common/shared/flash.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
@@ -766,6 +789,7 @@ endif
 CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
 SERVER_OBJS = $(patsubst %,build/server/%,$(SERVER_OBJS_))
 GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
+INSTRUMENTATION_OBJS = $(patsubst %,build/instrumentation/%,$(INSTRUMENTATION_OBJS_))
 
 # ----------
 
@@ -773,6 +797,7 @@ GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 CLIENT_DEPS= $(CLIENT_OBJS:.o=.d)
 SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 GAME_DEPS= $(GAME_OBJS:.o=.d)
+INSTRUMENTATION_DEPS_ = $(INSTRUMENTATION_OBJS:.o=.d)
 
 # ----------
 
@@ -817,6 +842,16 @@ else
 release/baseq2/game.so : $(GAME_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
+endif
+
+# release/instrumentation/tracepoints.so
+ifeq ($(OSTYPE), Windows)
+release/instrumentation/tracepoints.dll : $(INSTRUMENTATION_OBJS)
+# LOL
+else
+release/instrumentation/tracepoints.so : $(INSTRUMENTATION_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(INSTRUMENTATION_OBJS) -o $@ $(LDFLAGS)
 endif
 
 # ----------

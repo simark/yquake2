@@ -25,6 +25,7 @@
  */
 
 #include "../../header/local.h"
+#define TRACEPOINT_PROBE_DYNAMIC_LINKAGE
 #define TRACEPOINT_DEFINE
 #include "../../../instrumentation/lttng-ust-standard-tp.h"
 
